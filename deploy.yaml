@@ -3,13 +3,8 @@ kind: InnoDBCluster
 metadata:
   name: mycluster
 spec:
-  # secretName: mypwds
-  secretName:
-    valueFrom:
-      secretKeyRef:
-        name: mysql-secret
-        key: root_password
-  instances: 2
+  secretName: mysql-root-password
+  instances: 2 # change with your number of nodes
   router:
     instances: 1
 
