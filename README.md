@@ -2,6 +2,8 @@
 
 > Ref : https://github.com/mysql/mysql-operator
 
+## ❕❗❕ THIS IS NOT FOR PRODUCTION USE! PLEASE REFER TO PERCONA CLUSTER : https://gist.github.com/rendyproklamanta/a8219be8517a25227908c4e7a0d9d925
+
 <br>
 
 - Deploy prerequisite yaml
