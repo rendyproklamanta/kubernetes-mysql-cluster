@@ -13,13 +13,11 @@ spec:
   pxc:
     size: 2 # make sure to match the number of nodes you have | $ kubectl get nodes
     image: percona/percona-xtradb-cluster:8.0.23-14.1
-    # [mysqld]
-    #   max_allowed_packet=500M
-    #   max_connections=5000
-    #   innodb_buffer_pool_size=2G
     configuration: |
       [mysqld]
-      default-time-zone = "+07:00"
+      default-time-zone="+07:00"
+      max_allowed_packet=500M
+      max_connections=500
     volumeSpec:
       persistentVolumeClaim:
         storageClassName: vultr-block-storage
