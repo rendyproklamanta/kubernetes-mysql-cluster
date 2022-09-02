@@ -1,0 +1,64 @@
+  # # Backup to Vultr
+  # backup:
+  #   image: perconalab/percona-xtradb-cluster-operator:main-pxc8.0-backup
+  #   pitr:
+  #     enabled: true
+  #     storageName: s3-vultr
+  #     timeBetweenUploads: 60
+  #   storages:
+  #     s3-vultr:
+  #       type: s3
+  #       s3:
+  #         bucket: db-cluster-backup
+  #         credentialsSecret: vultr-s3-secret
+  #         endpointUrl: https://<insert_vultr_s3_endpoint_here>
+  #     s3-offsite:
+  #       type: s3
+  #       s3:
+  #         bucket: db-cluster-offsite-backup
+  #         credentialsSecret: offsite-s3-secret
+  #         endpointUrl: https://<insert_offsite_s3_endpoint_here>
+  #   schedule:
+  #     - name: "daily-backup-vultr"
+  #       schedule: "0 0 * * *"
+  #       keep: 10
+  #       storageName: s3-vultr
+  #     - name: "daily-backup-offsite"
+  #       schedule: "0 0 * * *"
+  #       keep: 10
+  #       storageName: s3-offsite
+
+
+  # # Backup to Amazon S3
+  # backup:
+  #   image: perconalab/percona-xtradb-cluster-operator:main-pxc8.0-backup
+  #   pitr:
+  #     enabled: false
+  #     storageName: STORAGE-NAME-HERE
+  #     timeBetweenUploads: 60
+  #   storages:
+  #     s3-us-west:
+  #       type: s3
+  #       verifyTLS: true
+  #       s3:
+  #         bucket: S3-BACKUP-BUCKET-NAME-HERE
+  #         credentialsSecret: my-cluster-name-backup-s3
+  #         region: us-west-2
+  #     fs-pvc:
+  #       type: filesystem
+  #       volume:
+  #         persistentVolumeClaim:
+  #           storageClassName: vultr-block-storage
+  #           accessModes: [ "ReadWriteOnce" ]
+  #           resources:
+  #             requests:
+  #               storage: 11G
+  #   schedule:
+  #     - name: "sat-night-backup"
+  #       schedule: "0 0 * * 6"
+  #       keep: 3
+  #       storageName: s3-us-west
+  #     - name: "daily-backup"
+  #       schedule: "0 0 * * *"
+  #       keep: 5
+  #       storageName: fs-pvc

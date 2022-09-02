@@ -1,23 +1,36 @@
-apiVersion: pxc.percona.com/v1-10-0
+apiVersion: pxc.percona.com/v1-11-0
 kind: PerconaXtraDBCluster
 metadata:
   name: db-cluster
+  finalizers:
+    - delete-pxc-pods-in-order
 spec:
-  minReadySeconds: 5
-  crVersion: 1.10.0
   secretsName: db-cluster-secrets
-  allowUnsafeConfigurations: true
+  crVersion: 1.11.0
+  allowUnsafeConfigurations: false
+  updateStrategy: SmartUpdate
   upgradeOptions:
+    versionServiceEndpoint: https://check.percona.com
     apply: 8.0-recommended
     schedule: "0 4 * * *"
   pxc:
-    size: 2 # make sure to match the number of nodes you have | $ kubectl get nodes
-    image: percona/percona-xtradb-cluster:8.0.23-14.1
+    size: 2
+    image: percona/percona-xtradb-cluster:8.0.27-18.1
+    autoRecovery: true
     configuration: |
       [mysqld]
       default-time-zone="+07:00"
-      max_allowed_packet=500M
-      max_connections=500
+      max_allowed_packet=1000M
+      max_connections=5000
+    # resources:
+    #   requests:
+    #     memory: 1G
+    #     cpu: 600m
+    affinity:
+      antiAffinityTopologyKey: "kubernetes.io/hostname"
+    podDisruptionBudget:
+      maxUnavailable: 1
+#      minAvailable: 0
     volumeSpec:
       persistentVolumeClaim:
         storageClassName: vultr-block-storage
@@ -25,44 +38,31 @@ spec:
         resources:
           requests:
             storage: 11G
+    gracePeriod: 600
 
   haproxy:
     enabled: true
-    size: 1
-    image: percona/percona-xtradb-cluster-operator:1.10.0-haproxy
-    # # Uncomment below if you want to access mysql from external IP with loadbalancer
-    # serviceType: LoadBalancer 
-    # replicasServiceType: LoadBalancer 
+    size: 2
+    image: perconalab/percona-xtradb-cluster-operator:main-haproxy
+    # resources:
+    #   requests:
+    #     memory: 1G
+    #     cpu: 600m
+    affinity:
+      antiAffinityTopologyKey: "kubernetes.io/hostname"
+    podDisruptionBudget:
+      maxUnavailable: 1
+#      minAvailable: 0
+    gracePeriod: 30
+
+
   logcollector:
     enabled: true
-    image: percona/percona-xtradb-cluster-operator:1.10.0-logcollector
+    image: perconalab/percona-xtradb-cluster-operator:main-logcollector
+    resources:
+      requests:
+        memory: 100M
+        cpu: 200m
 
-  # # Uncomment below if you want automatic backup to S3
-  # backup:
-  #   image: perconalab/percona-xtradb-cluster-operator:main-pxc8.0-backup
-  #   pitr:
-  #     enabled: true
-  #     storageName: s3-vultr
-  #     timeBetweenUploads: 60
-  #   storages:
-  #     s3-vultr:
-  #       type: s3
-  #       s3:
-  #         bucket: db-cluster-backup
-  #         credentialsSecret: vultr-s3-secret
-  #         endpointUrl: https://<insert_vultr_s3_endpoint_here>
-  #     s3-offsite:
-  #       type: s3
-  #       s3:
-  #         bucket: db-cluster-offsite-backup
-  #         credentialsSecret: offsite-s3-secret
-  #         endpointUrl: https://<insert_offsite_s3_endpoint_here>
-  #   schedule:
-  #     - name: "daily-backup-vultr"
-  #       schedule: "0 0 * * *"
-  #       keep: 10
-  #       storageName: s3-vultr
-  #     - name: "daily-backup-offsite"
-  #       schedule: "0 0 * * *"
-  #       keep: 10
-  #       storageName: s3-offsite
+
+# Insert content in backup.yaml below to automatically backup db
